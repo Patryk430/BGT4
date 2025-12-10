@@ -63,6 +63,12 @@ ETH transferred
 After subscribing (price changed to be more notesible)
 <img width="1920" height="190" alt="image" src="https://github.com/user-attachments/assets/fb952df7-b782-480b-9146-9f78e9317ce1" />
 
+## Front-End App (Broken)
+<img width="1920" height="940" alt="image" src="https://github.com/user-attachments/assets/542bff00-b3b6-4555-a479-8ff2dad866ff" />
+
+Allows you to connect using MetaMask (shows adress) bet can't connect to the contract, even though I double checked the adresses and MetaMask is connected to the Ganache local chain (balances get updated when using Treffle console). 
+
+
 
 
 
