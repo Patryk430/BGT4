@@ -11510,12 +11510,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xBDc76E251F4cE735e0084bA1A162A3d40CB84acD",
-      "transactionHash": "0x7137e178b659ab1d821c9a641a41a849f32c34ac00a9d0f0141344913d79e762"
+      "address": "0xBd6b9DB9e2b6C1ea9fb9Ce59748240b2A26E21Aa",
+      "transactionHash": "0x67df88d7eea30a237e18adfe4ce3d512c7c5d82b4c55a766efb29ac6f24b3efe"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-12-10T09:24:28.186Z",
+  "updatedAt": "2025-12-10T12:28:52.601Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "Only creator can change price/billing period or withdraw accumulated funds.",

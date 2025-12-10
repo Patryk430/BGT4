@@ -1,30 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Simple Subscription</title>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+import React, { useState } from "react";
+import { ethers } from "ethers";
 
-</head>
-<body>
-  <h1>Simple Subscription</h1>
+// ------------------ EDIT THESE ------------------
 
-  <button id="connectBtn">Connect Wallet</button>
+// 1) Paste your deployed contract address here:
+const CONTRACT_ADDRESS = "0xBd6b9DB9e2b6C1ea9fb9Ce59748240b2A26E21Aa";
 
-  <p><strong>Your Account:</strong> <span id="account"></span></p>
-  <p><strong>Subscription Price:</strong> <span id="price"></span></p>
-  <p><strong>Status:</strong> <span id="status"></span></p>
-
-  <button id="subscribeBtn">Subscribe</button>
-
-<script>
-    let web3;
-    let contract;
-    let account;
-
-    const CONTRACT_ADDRESS = '0xBDc76E251F4cE735e0084bA1A162A3d40CB84acD';
-
-    const ABI = [
+// 2) Paste your ABI array from build/contracts/Subscription.json
+//    Example: const ABI = [ { "inputs": [...], "name": "price", ... }, ... ];
+const ABI = [
     {
       "inputs": [
         {
@@ -325,62 +309,133 @@
     }
   ];
 
-    document.getElementById("connectBtn").onclick = async () => {
+// ------------------------------------------------
+
+function App() {
+  const [account, setAccount] = useState("");
+  const [price, setPrice] = useState("");
+  const [active, setActive] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function getContract() {
+    if (!window.ethereum) {
+      throw new Error("MetaMask not detected");
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
+    return { provider, signer, contract };
+  }
+
+  async function connectWallet() {
+    try {
+      setError("");
       if (!window.ethereum) {
-        alert("MetaMask not found!");
+        setError("MetaMask not detected");
         return;
       }
 
-      try {
-        // Request access FIRST
-        await ethereum.request({ method: "eth_requestAccounts" });
+      // Ask MetaMask for accounts
+      await window.ethereum.request({ method: "eth_requestAccounts" });
 
-        // THEN create Web3 instance
-        web3 = new Web3(window.ethereum);
+      const { signer, contract } = await getContract();
+      const addr = await signer.getAddress();
+      setAccount(addr);
 
-        // Load accounts
-        const accounts = await web3.eth.getAccounts();
-        account = accounts[0];
-        document.getElementById("account").innerText = account;
-
-        // Create contract object
-        contract = new web3.eth.Contract(ABI, CONTRACT_ADDRESS);
-
-        await loadData();
-      } 
-      catch (error) {
-        console.error(error);
-      }
-    };
-
-    async function loadData() {
-      try {
-        const price = await contract.methods.price().call();
-        document.getElementById("price").innerText = price + " wei";
-
-        const active = await contract.methods.isActive(account).call();
-        document.getElementById("status").innerText = active ? "Active" : "Not Active";
-      } 
-      catch (e) {
-        console.error("Error loading data:", e);
-      }
+      await loadData(contract, addr);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to connect");
     }
+  }
 
-    document.getElementById("subscribeBtn").onclick = async () => {
-      try {
-        const price = await contract.methods.price().call();
+  async function loadData(contract, addr) {
+    try {
+      setLoading(true);
+      setError("");
 
-        await contract.methods.subscribe().send({
-          from: account,
-          value: price
-        });
+      // Read price
+      const priceWei = await contract.price(); // bigint
+      setPrice(priceWei.toString());
 
-        await loadData();
-      } 
-      catch (e) {
-        console.error("Subscription failed:", e);
-      }
-    };
-</script>
-</body>
-</html>
+      // Read status
+      const isActive = await contract.isActive(addr);
+      setActive(isActive);
+    } catch (err) {
+      console.error("loadData error:", err);
+      setError("Failed to load contract data – check ABI, address, and network.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSubscribe() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const { signer, contract } = await getContract();
+      const addr = await signer.getAddress();
+
+      const priceWei = await contract.price();
+      const tx = await contract.subscribe({ value: priceWei });
+      await tx.wait();
+
+      await loadData(contract, addr);
+      alert("Subscription successful");
+    } catch (err) {
+      console.error("subscribe error:", err);
+      setError(err.message || "Subscription failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        fontFamily: "Arial, sans-serif",
+        padding: "32px",
+        maxWidth: "480px",
+        margin: "0 auto",
+      }}
+    >
+      <h1>Subscription dApp</h1>
+
+      <button onClick={connectWallet} disabled={loading}>
+        {account ? "Reconnect" : "Connect Wallet"}
+      </button>
+
+      {account && (
+        <>
+          <p>
+            <strong>Account:</strong> {account}
+          </p>
+          <p>
+            <strong>Price:</strong>{" "}
+            {price ? `${price} wei` : "(not loaded yet)"}
+          </p>
+          <p>
+            <strong>Status:</strong> {active ? "Active ✅" : "Not active ❌"}
+          </p>
+
+          <button onClick={handleSubscribe} disabled={loading}>
+            {loading ? "Processing..." : "Subscribe"}
+          </button>
+        </>
+      )}
+
+      {!account && <p>Connect your wallet to see subscription info.</p>}
+
+      {error && (
+        <p style={{ color: "red", marginTop: "16px" }}>
+          <strong>Error:</strong> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export default App;
