@@ -58,6 +58,13 @@ Transactions in Ganache
 ETH transferred
 <img width="1920" height="245" alt="image" src="https://github.com/user-attachments/assets/d1cea767-a1bc-42d9-bf7a-89511df58271" />
 
+### Ganache chain in MetaMask
+<img width="1920" height="885" alt="image" src="https://github.com/user-attachments/assets/bec4b338-6b55-4327-8317-210f64260845" />
+After subscribing (price changed to be more notesible)
+<img width="1920" height="190" alt="image" src="https://github.com/user-attachments/assets/fb952df7-b782-480b-9146-9f78e9317ce1" />
+
+
+
 
 
 
